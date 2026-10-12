@@ -5,12 +5,15 @@ let allArticles = [];
 let currentPage = 1;
 
 document.addEventListener('DOMContentLoaded', function () {
-    createBubbles();
     loadArticles();
 });
 
 async function loadArticles() {
     const listEl = document.getElementById('articleList');
+    listEl.setAttribute('aria-busy', 'true');
+    document.getElementById('pagination').replaceChildren();
+    listEl.innerHTML = '<p class="state-msg">加载中...</p>';
+    document.getElementById('articleCount').textContent = '正在翻开目录…';
     try {
         const res = await fetch(MANIFEST_URL, { cache: 'no-cache' });
         if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
@@ -26,17 +29,23 @@ async function loadArticles() {
 
         if (allArticles.length === 0) {
             listEl.innerHTML = '<p class="state-msg">暂时还没有文章</p>';
-            document.querySelector('.catalog-card').classList.add('is-visible');
+            document.getElementById('articleCount').textContent = '共 0 篇';
             return;
         }
 
         currentPage = getPageFromUrl();
         renderPage(currentPage);
-        document.querySelector('.catalog-card').classList.add('is-visible');
     } catch (err) {
         console.error(err);
-        listEl.innerHTML = '<p class="state-msg">文章目录加载失败，请确认 articles.json 是否存在，且页面通过本地服务器打开（而非直接双击 html 文件）。</p>';
-        document.querySelector('.catalog-card').classList.add('is-visible');
+        listEl.innerHTML = '<p class="state-msg">目录暂时未能打开，请稍后再试。</p>';
+        const retry = document.createElement('button');
+        retry.className = 'retry-button';
+        retry.textContent = '重新加载';
+        retry.addEventListener('click', loadArticles);
+        listEl.appendChild(retry);
+        document.getElementById('articleCount').textContent = '加载失败';
+    } finally {
+        listEl.setAttribute('aria-busy', 'false');
     }
 }
 
@@ -63,6 +72,7 @@ function renderPage(page) {
     });
 
     renderPagination(totalPages);
+    document.getElementById('articleCount').textContent = `共 ${allArticles.length} 篇 · 第 ${currentPage} / ${totalPages} 页`;
 
     const url = new URL(window.location.href);
     if (currentPage === 1) {
@@ -85,7 +95,7 @@ function buildArticleItem(article, indexNumber) {
     const body = document.createElement('div');
     body.className = 'item-body';
 
-    const title = document.createElement('div');
+    const title = document.createElement('h3');
     title.className = 'item-title';
     title.textContent = article.title || '无标题';
 
@@ -96,12 +106,15 @@ function buildArticleItem(article, indexNumber) {
     body.appendChild(title);
     body.appendChild(excerpt);
 
-    const date = document.createElement('div');
+    const date = document.createElement('time');
     date.className = 'item-date';
     date.textContent = article.date || '';
+    if (article.date) date.dateTime = article.date;
 
-    const arrow = document.createElement('i');
-    arrow.className = 'fa-solid fa-chevron-right item-arrow';
+    const arrow = document.createElement('span');
+    arrow.className = 'item-arrow';
+    arrow.textContent = '↗';
+    arrow.setAttribute('aria-hidden', 'true');
 
     a.appendChild(indexEl);
     a.appendChild(body);
@@ -128,7 +141,7 @@ function renderPagination(totalPages) {
 
     if (totalPages <= 1) return;
 
-    paginationEl.appendChild(makePageButton('<i class="fa-solid fa-angle-left"></i>', currentPage - 1, currentPage === 1));
+    paginationEl.appendChild(makePageButton('←', currentPage - 1, currentPage === 1, false, '上一页'));
 
     const pages = getPageNumbersToShow(currentPage, totalPages);
     pages.forEach(p => {
@@ -143,17 +156,25 @@ function renderPagination(totalPages) {
         }
     });
 
-    paginationEl.appendChild(makePageButton('<i class="fa-solid fa-angle-right"></i>', currentPage + 1, currentPage === totalPages));
+    paginationEl.appendChild(makePageButton('→', currentPage + 1, currentPage === totalPages, false, '下一页'));
 }
 
-function makePageButton(innerHtml, targetPage, disabled, isActive) {
+function makePageButton(label, targetPage, disabled, isActive, accessibleLabel) {
     const btn = document.createElement('button');
     btn.className = 'page-btn' + (isActive ? ' is-active' : '');
-    btn.innerHTML = innerHtml;
+    btn.type = 'button';
+    btn.textContent = label;
+    btn.setAttribute('aria-label', accessibleLabel || `第 ${targetPage} 页`);
+    btn.title = accessibleLabel || `第 ${targetPage} 页`;
+    if (isActive) btn.setAttribute('aria-current', 'page');
     btn.disabled = !!disabled;
     btn.addEventListener('click', () => {
         renderPage(targetPage);
-        document.querySelector('.catalog-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelector('.catalog-collection').scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+            block: 'start'
+        });
+        document.querySelector('.page-btn.is-active')?.focus({ preventScroll: true });
     });
     return btn;
 }
@@ -169,43 +190,4 @@ function getPageNumbersToShow(current, total) {
         }
     }
     return range;
-}
-
-/* ---- 背景气泡效果（与主页保持一致） ---- */
-function createBubbles() {
-    const bubblesContainer = document.getElementById('bubbles');
-    const bubbleCount = 15;
-
-    for (let i = 0; i < bubbleCount; i++) {
-        const bubble = document.createElement('div');
-        bubble.classList.add('bubble');
-
-        const size = Math.random() * 40 + 20;
-        bubble.style.width = `${size}px`;
-        bubble.style.height = `${size}px`;
-
-        bubble.style.left = `${Math.random() * 100}%`;
-        bubble.style.top = `${Math.random() * 100}%`;
-
-        const opacity = Math.random() * 0.2 + 0.1;
-        bubble.style.backgroundColor = `rgba(255, 255, 255, ${opacity})`;
-
-        const floatDuration = Math.random() * 10 + 10;
-        bubble.style.animation = `float ${floatDuration}s ease-in-out infinite alternate`;
-
-        bubblesContainer.appendChild(bubble);
-    }
-
-    addFloatAnimation();
-}
-
-function addFloatAnimation() {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-        @keyframes float {
-            0% { transform: translateY(0) translateX(0); }
-            100% { transform: translateY(-20px) translateX(10px); }
-        }
-    `;
-    document.head.appendChild(styleSheet);
 }

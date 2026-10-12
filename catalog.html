@@ -3,32 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文章目录 · Garki Page</title>
-    <link rel="icon" href="favicon.png" type="image/x-icon">
+    <meta name="theme-color" content="#faf8f1">
+    <title>文章目录 · The Spring Archive</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/catalog.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="background-container">
-        <div class="blur-background"></div>
-        <div class="bubbles-container" id="bubbles"></div>
-    </div>
-
-    <div class="catalog-card">
+    <a class="skip-link" href="#articleList">跳至文章目录</a>
+    <header class="site-header">
+        <a class="wordmark" href="index.html"><span class="sun" aria-hidden="true">☼</span> THE SPRING ARCHIVE</a>
+        <nav aria-label="主导航"><a href="index.html">About</a><a href="catalog.html" aria-current="page">Her World</a><a href="index.html#secrets">Little Secrets</a></nav>
+    </header>
+    <main class="catalog-page">
         <header class="catalog-header">
-            <a href="index.html" class="home-link" title="返回主页">
-                <i class="fa-solid fa-house"></i>
-            </a>
-            <h1 class="catalog-title">文章目录</h1>
-            <p class="catalog-subtitle">选一篇看看吧</p>
+            <div class="edition"><a href="index.html" class="home-link"><span aria-hidden="true">←</span> 返回主页</a><span>THE OTHER SIDE OF THE GARDEN</span></div>
+            <div class="catalog-intro">
+                <div><p class="eyebrow">GARKI'S COLLECTED PAGES</p><h1>Stories &amp;<br><em>little secrets.</em></h1><p class="catalog-subtitle">文章目录 · 选一篇看看吧</p></div>
+                <aside class="catalog-aside"><img src="image/Image_1748783130720.png" alt="Garki 的头像" width="64" height="64"><p>“A page turned,<br>a little world found.”</p><span>故事藏在下一页。</span></aside>
+            </div>
         </header>
-
-        <div class="article-list" id="articleList">
-            <p class="state-msg">加载中...</p>
-        </div>
-
-        <nav class="pagination" id="pagination" aria-label="分页导航"></nav>
-    </div>
+        <section class="catalog-collection" aria-labelledby="collection-title">
+            <div class="collection-heading"><h2 id="collection-title">所有篇章 <span>THE COLLECTION</span></h2><p id="articleCount" role="status" aria-live="polite">正在翻开目录…</p></div>
+            <div class="article-list" id="articleList" aria-busy="true"><p class="state-msg">加载中...</p></div>
+            <noscript><p class="state-msg">请启用 JavaScript 以加载文章目录。</p></noscript>
+            <nav class="pagination" id="pagination" aria-label="分页导航"></nav>
+            <p class="collection-end">A small collection of sunlit things.</p>
+        </section>
+    </main>
+    <footer><a class="footer-brand" href="index.html">Garki.</a><p>Some stories stay with you.</p><span>愿你在字里行间遇见晴天 <span class="sun" aria-hidden="true">☼</span></span></footer>
 
     <script src="js/catalog.js"></script>
 </body>
